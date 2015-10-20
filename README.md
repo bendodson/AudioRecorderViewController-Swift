@@ -7,7 +7,7 @@ Copy the AudioRecorderViewController directory into your project ensuring that y
 
 ## Screenshot
 
-![AudioRecorderViewController-Swift being presented modally](example.jpg?raw=true)
+![AudioRecorderViewController-Swift being presented modally](example.png?raw=true)
 
 ## Example Usage
 	@IBAction func presentAudioRecorder(sender: AnyObject) {
