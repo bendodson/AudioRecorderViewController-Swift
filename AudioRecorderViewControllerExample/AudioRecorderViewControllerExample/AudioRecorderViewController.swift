@@ -10,7 +10,7 @@ import UIKit
 import AVFoundation
 
 protocol AudioRecorderViewControllerDelegate: class {
-    func audioRecorderViewControllerDismissed(withFileURL fileURL: NSURL?)
+    func audioRecorderViewControllerDismissed(withFileURL fileURL: URL?)
 }
 
 
@@ -18,33 +18,33 @@ class AudioRecorderViewController: UINavigationController {
     
     internal let childViewController = AudioRecorderChildViewController()
     weak var audioRecorderDelegate: AudioRecorderViewControllerDelegate?
-    var statusBarStyle: UIStatusBarStyle = .Default
+    var statusBarStyle: UIStatusBarStyle = .default
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        statusBarStyle = UIApplication.sharedApplication().statusBarStyle
-        UIApplication.sharedApplication().setStatusBarStyle(.LightContent, animated: animated)
+        statusBarStyle = UIApplication.shared.statusBarStyle
+        UIApplication.shared.setStatusBarStyle(.lightContent, animated: animated)
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        UIApplication.sharedApplication().setStatusBarStyle(statusBarStyle, animated: animated)
+        UIApplication.shared.setStatusBarStyle(statusBarStyle, animated: animated)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.blackColor()
+        view.backgroundColor = UIColor.black
         childViewController.audioRecorderDelegate = audioRecorderDelegate
         viewControllers = [childViewController]
         
-        navigationBar.barTintColor = UIColor.blackColor()
-        navigationBar.tintColor = UIColor.whiteColor()
-        navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor()]
-        navigationBar.setBackgroundImage(UIImage(), forBarMetrics: .Default)
+        navigationBar.barTintColor = UIColor.black
+        navigationBar.tintColor = UIColor.white
+        navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
+        navigationBar.setBackgroundImage(UIImage(), for: .default)
     }
 
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return .LightContent
+    override var preferredStatusBarStyle : UIStatusBarStyle {
+        return .lightContent
     }
     
     
@@ -60,17 +60,17 @@ class AudioRecorderViewController: UINavigationController {
         @IBOutlet weak var playButton: UIButton!
         weak var audioRecorderDelegate: AudioRecorderViewControllerDelegate?
 
-        var timeTimer: NSTimer?
+        var timeTimer: Timer?
         var milliseconds: Int = 0
         
         var recorder: AVAudioRecorder!
         var player: AVAudioPlayer?
-        var outputURL: NSURL
+        var outputURL: URL
         
         init() {
-            let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as NSString
-            let outputPath = documentsPath.stringByAppendingPathComponent("\(NSUUID().UUIDString).m4a")
-            outputURL = NSURL(fileURLWithPath: outputPath)
+            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+            let outputPath = documentsPath.appendingPathComponent("\(UUID().uuidString).m4a")
+            outputURL = URL(fileURLWithPath: outputPath)
             super.init(nibName: "AudioRecorderViewController", bundle: nil)
         }
 
@@ -80,25 +80,25 @@ class AudioRecorderViewController: UINavigationController {
         
         override func viewDidLoad() {
             title = "Audio Recorder"
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "dismiss:")
-            edgesForExtendedLayout = .None
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(AudioRecorderChildViewController.dismiss(_:)))
+            edgesForExtendedLayout = UIRectEdge()
             
-            saveButton = UIBarButtonItem(barButtonSystemItem: .Save, target: self, action: "saveAudio:")
+            saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(AudioRecorderChildViewController.saveAudio(_:)))
             navigationItem.rightBarButtonItem = saveButton
-            saveButton.enabled = false
+            saveButton.isEnabled = false
             
-            let settings = [AVFormatIDKey: NSNumber(unsignedInt: kAudioFormatMPEG4AAC), AVSampleRateKey: NSNumber(integer: 44100), AVNumberOfChannelsKey: NSNumber(integer: 2)]
-            try! recorder = AVAudioRecorder(URL: outputURL, settings: settings)
+            let settings = [AVFormatIDKey: NSNumber(value: kAudioFormatMPEG4AAC as UInt32), AVSampleRateKey: NSNumber(value: 44100 as Int), AVNumberOfChannelsKey: NSNumber(value: 2 as Int)]
+            try! recorder = AVAudioRecorder(url: outputURL, settings: settings)
             recorder.delegate = self
             recorder.prepareToRecord()
             
             recordButton.layer.cornerRadius = 4
             recordButtonContainer.layer.cornerRadius = 25
-            recordButtonContainer.layer.borderColor = UIColor.whiteColor().CGColor
+            recordButtonContainer.layer.borderColor = UIColor.white.cgColor
             recordButtonContainer.layer.borderWidth = 3
         }
         
-        override func viewDidAppear(animated: Bool) {
+        override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
             
             do {
@@ -109,34 +109,34 @@ class AudioRecorderViewController: UINavigationController {
                 NSLog("Error: \(error)")
             }
             
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "stopRecording:", name: UIApplicationDidEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(AudioRecorderChildViewController.stopRecording(_:)), name: NSNotification.Name.UIApplicationDidEnterBackground, object: nil)
         }
         
-        override func viewWillDisappear(animated: Bool) {
+        override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
-            NSNotificationCenter.defaultCenter().removeObserver(self)
+            NotificationCenter.default.removeObserver(self)
         }
         
-        func dismiss(sender: AnyObject) {
+        func dismiss(_ sender: AnyObject) {
             cleanup()
             audioRecorderDelegate?.audioRecorderViewControllerDismissed(withFileURL: nil)
         }
         
-        func saveAudio(sender: AnyObject) {
+        func saveAudio(_ sender: AnyObject) {
             cleanup()
             audioRecorderDelegate?.audioRecorderViewControllerDismissed(withFileURL: outputURL)
         }
         
-        @IBAction func toggleRecord(sender: AnyObject) {
+        @IBAction func toggleRecord(_ sender: AnyObject) {
             
             timeTimer?.invalidate()
             
-            if recorder.recording {
+            if recorder.isRecording {
                 recorder.stop()
             } else {
                 milliseconds = 0
                 timeLabel.text = "00:00.00"
-                timeTimer = NSTimer.scheduledTimerWithTimeInterval(0.0167, target: self, selector: "updateTimeLabel:", userInfo: nil, repeats: true)
+                timeTimer = Timer.scheduledTimer(timeInterval: 0.0167, target: self, selector: #selector(AudioRecorderChildViewController.updateTimeLabel(_:)), userInfo: nil, repeats: true)
                 recorder.deleteRecording()
                 recorder.record()
             }
@@ -145,15 +145,15 @@ class AudioRecorderViewController: UINavigationController {
             
         }
         
-        func stopRecording(sender: AnyObject) {
-            if recorder.recording {
+        func stopRecording(_ sender: AnyObject) {
+            if recorder.isRecording {
                 toggleRecord(sender)
             }
         }
         
         func cleanup() {
             timeTimer?.invalidate()
-            if recorder.recording {
+            if recorder.isRecording {
                 recorder.stop()
                 recorder.deleteRecording()
             }
@@ -163,7 +163,7 @@ class AudioRecorderViewController: UINavigationController {
             }
         }
         
-        @IBAction func play(sender: AnyObject) {
+        @IBAction func play(_ sender: AnyObject) {
             
             if let player = player {
                 player.stop()
@@ -173,7 +173,7 @@ class AudioRecorderViewController: UINavigationController {
             }
             
             do {
-                try player = AVAudioPlayer(contentsOfURL: outputURL)
+                try player = AVAudioPlayer(contentsOf: outputURL)
             }
             catch let error as NSError {
                 NSLog("error: \(error)")
@@ -188,23 +188,23 @@ class AudioRecorderViewController: UINavigationController {
         
         func updateControls() {
             
-            UIView.animateWithDuration(0.2) { () -> Void in
-                self.recordButton.transform = self.recorder.recording ? CGAffineTransformMakeScale(0.5, 0.5) : CGAffineTransformMakeScale(1, 1)
-            }
+            UIView.animate(withDuration: 0.2, animations: { () -> Void in
+                self.recordButton.transform = self.recorder.isRecording ? CGAffineTransform(scaleX: 0.5, y: 0.5) : CGAffineTransform(scaleX: 1, y: 1)
+            }) 
             
             if let _ = player {
-                playButton.setImage(UIImage(named: "StopButton"), forState: .Normal)
-                recordButton.enabled = false
+                playButton.setImage(UIImage(named: "StopButton"), for: UIControlState())
+                recordButton.isEnabled = false
                 recordButtonContainer.alpha = 0.25
             } else {
-                playButton.setImage(UIImage(named: "PlayButton"), forState: .Normal)
-                recordButton.enabled = true
+                playButton.setImage(UIImage(named: "PlayButton"), for: UIControlState())
+                recordButton.isEnabled = true
                 recordButtonContainer.alpha = 1
             }
             
-            playButton.enabled = !recorder.recording
-            playButton.alpha = recorder.recording ? 0.25 : 1
-            saveButton.enabled = !recorder.recording
+            playButton.isEnabled = !recorder.isRecording
+            playButton.alpha = recorder.isRecording ? 0.25 : 1
+            saveButton.isEnabled = !recorder.isRecording
             
         }
         
@@ -213,8 +213,8 @@ class AudioRecorderViewController: UINavigationController {
         
         // MARK: Time Label
         
-        func updateTimeLabel(timer: NSTimer) {
-            milliseconds++
+        func updateTimeLabel(_ timer: Timer) {
+            milliseconds += 1
             let milli = (milliseconds % 60) + 39
             let sec = (milliseconds / 60) % 60
             let min = milliseconds / 3600
@@ -224,7 +224,7 @@ class AudioRecorderViewController: UINavigationController {
         
         // MARK: Playback Delegate
         
-        func audioPlayerDidFinishPlaying(player: AVAudioPlayer, successfully flag: Bool) {
+        func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
             self.player = nil
             updateControls()
         }

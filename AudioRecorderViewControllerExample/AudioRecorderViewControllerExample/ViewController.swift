@@ -21,17 +21,17 @@ class ViewController: UIViewController, AudioRecorderViewControllerDelegate {
         // Dispose of any resources that can be recreated.
     }
 
-    @IBAction func presentAudioRecorder(sender: AnyObject) {
+    @IBAction func presentAudioRecorder(_ sender: AnyObject) {
         
         let controller = AudioRecorderViewController()
         controller.audioRecorderDelegate = self
-        presentViewController(controller, animated: true, completion: nil)
+        present(controller, animated: true, completion: nil)
         
     }
     
-    func audioRecorderViewControllerDismissed(withFileURL fileURL: NSURL?) {
+    func audioRecorderViewControllerDismissed(withFileURL fileURL: URL?) {
         // do something with fileURL
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
 
 }
