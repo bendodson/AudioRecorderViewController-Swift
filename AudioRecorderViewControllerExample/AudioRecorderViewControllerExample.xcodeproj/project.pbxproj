@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2B480F121BD68204002DA7D7 /* StopButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B480F101BD68204002DA7D7 /* StopButton@2x.png */; settings = {ASSET_TAGS = (); }; };
-		2B480F131BD68204002DA7D7 /* PlayButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B480F111BD68204002DA7D7 /* PlayButton@2x.png */; settings = {ASSET_TAGS = (); }; };
+		2B480F121BD68204002DA7D7 /* StopButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B480F101BD68204002DA7D7 /* StopButton@2x.png */; };
+		2B480F131BD68204002DA7D7 /* PlayButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B480F111BD68204002DA7D7 /* PlayButton@2x.png */; };
 		2BA7D00B1BD5412B00199599 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA7D00A1BD5412B00199599 /* AppDelegate.swift */; };
 		2BA7D00D1BD5412B00199599 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA7D00C1BD5412B00199599 /* ViewController.swift */; };
 		2BA7D0101BD5412B00199599 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BA7D00E1BD5412B00199599 /* Main.storyboard */; };
 		2BA7D0121BD5412B00199599 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BA7D0111BD5412B00199599 /* Assets.xcassets */; };
 		2BA7D0151BD5412B00199599 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BA7D0131BD5412B00199599 /* LaunchScreen.storyboard */; };
-		2BA7D0231BD541DF00199599 /* AudioRecorderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA7D0211BD541DF00199599 /* AudioRecorderViewController.swift */; settings = {ASSET_TAGS = (); }; };
-		2BA7D0241BD541DF00199599 /* AudioRecorderViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2BA7D0221BD541DF00199599 /* AudioRecorderViewController.xib */; settings = {ASSET_TAGS = (); }; };
+		2BA7D0231BD541DF00199599 /* AudioRecorderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA7D0211BD541DF00199599 /* AudioRecorderViewController.swift */; };
+		2BA7D0241BD541DF00199599 /* AudioRecorderViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2BA7D0221BD541DF00199599 /* AudioRecorderViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -115,7 +115,6 @@
 				TargetAttributes = {
 					2BA7D0061BD5412B00199599 = {
 						CreatedOnToolsVersion = 7.0.1;
-						DevelopmentTeam = 59Z77N5UCT;
 					};
 				};
 			};
@@ -124,6 +123,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -227,6 +227,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -263,6 +264,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -272,8 +274,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = AudioRecorderViewControllerExample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.dodoapps.AudioRecorderViewControllerExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -285,8 +288,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = AudioRecorderViewControllerExample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.dodoapps.AudioRecorderViewControllerExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
