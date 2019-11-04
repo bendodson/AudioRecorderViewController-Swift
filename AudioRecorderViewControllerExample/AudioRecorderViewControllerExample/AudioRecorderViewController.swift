@@ -18,49 +18,50 @@ class AudioRecorderViewController: UINavigationController {
     
     internal let childViewController = AudioRecorderChildViewController()
     weak var audioRecorderDelegate: AudioRecorderViewControllerDelegate?
-    var statusBarStyle: UIStatusBarStyle = .Default
     
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        statusBarStyle = UIApplication.sharedApplication().statusBarStyle
-        UIApplication.sharedApplication().setStatusBarStyle(.LightContent, animated: animated)
-    }
+    var statusBarStyle: UIStatusBarStyle = .default
     
-    override func viewWillDisappear(animated: Bool) {
-        super.viewWillDisappear(animated)
-        UIApplication.sharedApplication().setStatusBarStyle(statusBarStyle, animated: animated)
-    }
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.blackColor()
+        view.backgroundColor = UIColor.black
         childViewController.audioRecorderDelegate = audioRecorderDelegate
         viewControllers = [childViewController]
         
-        navigationBar.barTintColor = UIColor.blackColor()
-        navigationBar.tintColor = UIColor.whiteColor()
-        navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor()]
-        navigationBar.setBackgroundImage(UIImage(), forBarMetrics: .Default)
-    }
-
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return .LightContent
+        navigationBar.barTintColor = UIColor.black
+        navigationBar.tintColor = UIColor.white
+        navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        navigationBar.setBackgroundImage(UIImage(), for: .default)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        statusBarStyle = UIApplication.shared.statusBarStyle
+        self.preferredStatusBarStyle
+        UIApplication.shared.setStatusBarStyle(.lightContent, animated: animated)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        UIApplication.shared.setStatusBarStyle(statusBarStyle, animated: animated)
+    }
     
     
-    // MARK: AudioRecorderChildViewController
+    // MARK: - AudioRecorderChildViewController
     
     internal class AudioRecorderChildViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
         
         var saveButton: UIBarButtonItem!
+        
         @IBOutlet weak var timeLabel: UILabel!
         @IBOutlet weak var recordButton: UIButton!
         @IBOutlet weak var recordButtonContainer: UIView!
         @IBOutlet weak var playButton: UIButton!
+        
         weak var audioRecorderDelegate: AudioRecorderViewControllerDelegate?
-
-        var timeTimer: NSTimer?
+        
+        var timeTimer: Timer?
         var milliseconds: Int = 0
         
         var recorder: AVAudioRecorder!
@@ -68,103 +69,88 @@ class AudioRecorderViewController: UINavigationController {
         var outputURL: NSURL
         
         init() {
-            let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as NSString
-            let outputPath = documentsPath.stringByAppendingPathComponent("\(NSUUID().UUIDString).m4a")
+            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+            let outputPath = documentsPath.appendingPathComponent("\(NSUUID().uuidString).m4a")
             outputURL = NSURL(fileURLWithPath: outputPath)
             super.init(nibName: "AudioRecorderViewController", bundle: nil)
         }
-
+        
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
         
         override func viewDidLoad() {
             title = "Audio Recorder"
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Cancel, target: self, action: "dismiss:")
-            edgesForExtendedLayout = .None
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(AudioRecorderChildViewController.dismiss))
+            edgesForExtendedLayout = .all
             
-            saveButton = UIBarButtonItem(barButtonSystemItem: .Save, target: self, action: "saveAudio:")
+            saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(AudioRecorderChildViewController.saveAudio))
             navigationItem.rightBarButtonItem = saveButton
-            saveButton.enabled = false
+            saveButton.isEnabled = false
             
-            let settings = [AVFormatIDKey: NSNumber(unsignedInt: kAudioFormatMPEG4AAC), AVSampleRateKey: NSNumber(integer: 44100), AVNumberOfChannelsKey: NSNumber(integer: 2)]
-            try! recorder = AVAudioRecorder(URL: outputURL, settings: settings)
+            let settings = [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 44100,
+                AVNumberOfChannelsKey: 2,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            ]
+            
+            try! recorder = AVAudioRecorder(url: outputURL as URL, settings: settings)
             recorder.delegate = self
             recorder.prepareToRecord()
             
             recordButton.layer.cornerRadius = 4
             recordButtonContainer.layer.cornerRadius = 25
-            recordButtonContainer.layer.borderColor = UIColor.whiteColor().CGColor
+            recordButtonContainer.layer.borderColor = UIColor.white.cgColor
             recordButtonContainer.layer.borderWidth = 3
         }
         
-        override func viewDidAppear(animated: Bool) {
+        override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
             
             do {
-                try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayAndRecord)
+                try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playAndRecord)
                 try AVAudioSession.sharedInstance().setActive(true)
             }
             catch let error as NSError {
                 NSLog("Error: \(error)")
             }
             
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: "stopRecording:", name: UIApplicationDidEnterBackgroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(stopRecording(sender:)), name: UIApplication.didEnterBackgroundNotification, object: nil)
         }
         
-        override func viewWillDisappear(animated: Bool) {
+        override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
-            NSNotificationCenter.defaultCenter().removeObserver(self)
+            NotificationCenter.default.removeObserver(self)
         }
         
-        func dismiss(sender: AnyObject) {
+        @objc func dismiss(_ sender: Any) {
             cleanup()
             audioRecorderDelegate?.audioRecorderViewControllerDismissed(withFileURL: nil)
         }
         
-        func saveAudio(sender: AnyObject) {
+        @objc func saveAudio(_ sender: Any) {
             cleanup()
             audioRecorderDelegate?.audioRecorderViewControllerDismissed(withFileURL: outputURL)
         }
         
-        @IBAction func toggleRecord(sender: AnyObject) {
-            
+        @IBAction func toggleRecord(_ sender: Any) {
             timeTimer?.invalidate()
             
-            if recorder.recording {
+            if recorder.isRecording {
                 recorder.stop()
             } else {
                 milliseconds = 0
                 timeLabel.text = "00:00.00"
-                timeTimer = NSTimer.scheduledTimerWithTimeInterval(0.0167, target: self, selector: "updateTimeLabel:", userInfo: nil, repeats: true)
+                timeTimer = Timer.scheduledTimer(timeInterval: 0.02, target: self, selector: #selector(updateTimeLabel(timer:)), userInfo: nil, repeats: true)
                 recorder.deleteRecording()
                 recorder.record()
             }
             
             updateControls()
-            
         }
         
-        func stopRecording(sender: AnyObject) {
-            if recorder.recording {
-                toggleRecord(sender)
-            }
-        }
-        
-        func cleanup() {
-            timeTimer?.invalidate()
-            if recorder.recording {
-                recorder.stop()
-                recorder.deleteRecording()
-            }
-            if let player = player {
-                player.stop()
-                self.player = nil
-            }
-        }
-        
-        @IBAction func play(sender: AnyObject) {
-            
+        @IBAction func play(_ sender: Any) {
             if let player = player {
                 player.stop()
                 self.player = nil
@@ -173,7 +159,7 @@ class AudioRecorderViewController: UINavigationController {
             }
             
             do {
-                try player = AVAudioPlayer(contentsOfURL: outputURL)
+                try player = AVAudioPlayer(contentsOf: outputURL as URL)
             }
             catch let error as NSError {
                 NSLog("error: \(error)")
@@ -185,53 +171,60 @@ class AudioRecorderViewController: UINavigationController {
             updateControls()
         }
         
+        @objc func stopRecording(sender: AnyObject) {
+            if recorder.isRecording {
+                toggleRecord(sender)
+            }
+        }
+        
+        func cleanup() {
+            timeTimer?.invalidate()
+            if recorder.isRecording {
+                recorder.stop()
+                recorder.deleteRecording()
+            }
+            if let player = player {
+                player.stop()
+                self.player = nil
+            }
+        }
         
         func updateControls() {
-            
-            UIView.animateWithDuration(0.2) { () -> Void in
-                self.recordButton.transform = self.recorder.recording ? CGAffineTransformMakeScale(0.5, 0.5) : CGAffineTransformMakeScale(1, 1)
+            UIView.animate(withDuration: 0.2) { () -> Void in
+                self.recordButton.transform = self.recorder.isRecording ? CGAffineTransform(scaleX: 0.5, y: 0.5) : CGAffineTransform(scaleX: 1, y: 1)
             }
             
             if let _ = player {
-                playButton.setImage(UIImage(named: "StopButton"), forState: .Normal)
-                recordButton.enabled = false
+                playButton.setImage(UIImage(named: "StopButton"), for: .normal)
+                recordButton.isEnabled = false
                 recordButtonContainer.alpha = 0.25
             } else {
-                playButton.setImage(UIImage(named: "PlayButton"), forState: .Normal)
-                recordButton.enabled = true
+                playButton.setImage(UIImage(named: "PlayButton"), for: .normal)
+                recordButton.isEnabled = true
                 recordButtonContainer.alpha = 1
             }
             
-            playButton.enabled = !recorder.recording
-            playButton.alpha = recorder.recording ? 0.25 : 1
-            saveButton.enabled = !recorder.recording
-            
+            playButton.isEnabled = !recorder.isRecording
+            playButton.alpha = recorder.isRecording ? 0.25 : 1
+            saveButton.isEnabled = !recorder.isRecording
         }
         
+        // MARK: - Time Label
         
-        
-        
-        // MARK: Time Label
-        
-        func updateTimeLabel(timer: NSTimer) {
-            milliseconds++
+        @objc func updateTimeLabel(timer: Timer) {
+            milliseconds += 1
             let milli = (milliseconds % 60) + 39
             let sec = (milliseconds / 60) % 60
             let min = milliseconds / 3600
             timeLabel.text = NSString(format: "%02d:%02d.%02d", min, sec, milli) as String
         }
         
+        // MARK: - Playback Delegate
         
-        // MARK: Playback Delegate
-        
-        func audioPlayerDidFinishPlaying(player: AVAudioPlayer, successfully flag: Bool) {
+        func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
             self.player = nil
             updateControls()
         }
-        
-        
-        
     }
-
 }
 
